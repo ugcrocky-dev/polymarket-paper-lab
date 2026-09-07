@@ -240,14 +240,14 @@ export default function HomePage() {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--muted)]">
-              Simulation desk \u00b7 $1,000 / bot \u00b7 Polymarket taker fees on
+              Simulation desk · $1,000 / bot · Polymarket taker fees on
             </p>
             <h2 className="mt-1 text-3xl font-semibold">
               Race 100 strategies in paper
             </h2>
             <p className="mt-2 max-w-2xl text-[var(--muted)]">
-              Net PnL = equity \u2212 $1,000 after fees. A bot can show trades with ~$0
-              net if it only bought and price hasn&apos;t moved \u2014 check Realized /
+              Net PnL = equity − $1,000 after fees. A bot can show trades with ~$0
+              net if it only bought and price hasn&apos;t moved — check Realized /
               Unrealized / Fees columns. FOMO bars below compare wallet following
               vs our proprietary strategies.
             </p>
@@ -272,13 +272,13 @@ export default function HomePage() {
 
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
         {[
-          ["Strategies", data?.strategyCount ?? "\u2014"],
-          ["Running", data?.runningCount ?? "\u2014"],
-          ["Eligible", data?.eligibleCount ?? "\u2014"],
-          ["Trades", data?.totalTrades ?? "\u2014"],
-          ["Equity", data ? money(data.totalEquity) : "\u2014"],
-          ["Fees", data ? money(data.totalFees) : "\u2014"],
-          ["Net PnL", data ? money(data.totalPnl) : "\u2014"],
+          ["Strategies", data?.strategyCount ?? "—"],
+          ["Running", data?.runningCount ?? "—"],
+          ["Eligible", data?.eligibleCount ?? "—"],
+          ["Trades", data?.totalTrades ?? "—"],
+          ["Equity", data ? money(data.totalEquity) : "—"],
+          ["Fees", data ? money(data.totalFees) : "—"],
+          ["Net PnL", data ? money(data.totalPnl) : "—"],
         ].map(([label, value]) => (
           <div key={String(label)} className="panel p-4">
             <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--muted)]">{label}</p>
@@ -293,9 +293,9 @@ export default function HomePage() {
             Strategy FOMO
           </h3>
           <p className="mt-1 text-sm text-[var(--muted)]">
-            Wallet following vs our proprietary book \u2014 who is profitable right now.
+            Wallet following vs our proprietary book — who is profitable right now.
             {data
-              ? ` ${winners.length} green \u00b7 ${losers.length} red`
+              ? ` ${winners.length} green · ${losers.length} red`
               : ""}
           </p>
         </div>
@@ -303,7 +303,7 @@ export default function HomePage() {
         <div className="grid gap-0 lg:grid-cols-2">
           <div className="border-b border-[var(--line)] p-4 lg:border-b-0 lg:border-r">
             <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--muted)]">
-              Family duel \u00b7 total net PnL
+              Family duel · total net PnL
             </p>
             <div className="space-y-4">
               {families.map((f) => (
@@ -312,7 +312,7 @@ export default function HomePage() {
                     <div>
                       <p className="text-lg font-semibold">{f.label}</p>
                       <p className="font-mono text-[11px] text-[var(--muted)]">
-                        {f.winners}/{f.count} profitable \u00b7 avg {money(f.avgNetPnl)} \u00b7{" "}
+                        {f.winners}/{f.count} profitable · avg {money(f.avgNetPnl)} ·{" "}
                         {f.trades} trades
                       </p>
                     </div>
@@ -334,19 +334,19 @@ export default function HomePage() {
                     />
                   </div>
                   <p className="mt-1 font-mono text-[10px] uppercase tracking-wider text-[var(--muted)]">
-                    win rate {(f.winRate * 100).toFixed(0)}% \u00b7 equity {money(f.equity)}
+                    win rate {(f.winRate * 100).toFixed(0)}% · equity {money(f.equity)}
                   </p>
                 </div>
               ))}
               {!families.length ? (
-                <p className="text-sm text-[var(--muted)]">Loading family split\u2026</p>
+                <p className="text-sm text-[var(--muted)]">Loading family split…</p>
               ) : null}
             </div>
           </div>
 
           <div className="p-4">
             <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--muted)]">
-              Hot board \u00b7 top 12 by net
+              Hot board · top 12 by net
             </p>
             <div>
               {topBars.map((s) => (
@@ -356,11 +356,11 @@ export default function HomePage() {
                   maxAbs={barMax}
                   label={s.name}
                   href={`/bots/${encodeURIComponent(s.id)}`}
-                  meta={`${familyLabel(s.family)} \u00b7 ${s.tradeCount} trades`}
+                  meta={`${familyLabel(s.family)} · ${s.tradeCount} trades`}
                 />
               ))}
               {!topBars.length ? (
-                <p className="text-sm text-[var(--muted)]">Waiting on bot data\u2026</p>
+                <p className="text-sm text-[var(--muted)]">Waiting on bot data…</p>
               ) : null}
             </div>
           </div>
@@ -368,7 +368,7 @@ export default function HomePage() {
 
         <div className="border-t border-[var(--line)] p-4">
           <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--muted)]">
-            Cold board \u00b7 bottom 12
+            Cold board · bottom 12
           </p>
           <div className="grid gap-x-8 gap-y-0 md:grid-cols-2">
             {bottomBars.map((s) => (
@@ -378,7 +378,7 @@ export default function HomePage() {
                 maxAbs={barMax}
                 label={s.name}
                 href={`/bots/${encodeURIComponent(s.id)}`}
-                meta={`${familyLabel(s.family)} \u00b7 ${s.tradeCount} trades`}
+                meta={`${familyLabel(s.family)} · ${s.tradeCount} trades`}
               />
             ))}
           </div>
@@ -389,8 +389,8 @@ export default function HomePage() {
         <div className="flex items-center justify-between border-b border-[var(--line)] px-4 py-3">
           <h3 className="font-mono text-xs uppercase tracking-[0.16em]">All paper bots</h3>
           <p className="font-mono text-[11px] text-[var(--muted)]">
-            realized {data ? money(data.totalRealized) : "\u2014"} \u00b7 unrealized{" "}
-            {data ? money(data.totalUnrealized) : "\u2014"} \u00b7 tap headers to sort
+            realized {data ? money(data.totalRealized) : "—"} · unrealized{" "}
+            {data ? money(data.totalUnrealized) : "—"} · tap headers to sort
           </p>
         </div>
         <table>

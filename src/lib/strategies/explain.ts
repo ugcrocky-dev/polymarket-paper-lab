@@ -1,7 +1,7 @@
 import { StrategyDef } from "../types";
 
 const EXIT_SHARED =
-  "Exits follow the strategy\u2019s sell rules when they fire, and the lab also flattens marks outside the extreme price band (certainty recycle) so cash is not trapped in near-resolved books.";
+  "Exits follow the strategy’s sell rules when they fire, and the lab also flattens marks outside the extreme price band (certainty recycle) so cash is not trapped in near-resolved books.";
 
 function money(n: number) {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
@@ -72,11 +72,11 @@ function watchSentence(s: StrategyDef): string {
     );
   } else if (score === "pnl_over_vol") {
     parts.push(
-      `It ranks monthly wallets by PnL efficiency (PnL \u00f7 volume) and watches the top ${topN}`
+      `It ranks monthly wallets by PnL efficiency (PnL ÷ volume) and watches the top ${topN}`
     );
   } else if (score === "pnl_sqrt_vol") {
     parts.push(
-      `It ranks monthly wallets by a risk-adjusted proxy (PnL \u00f7 \u221avolume) and watches the top ${topN}`
+      `It ranks monthly wallets by a risk-adjusted proxy (PnL ÷ √volume) and watches the top ${topN}`
     );
   } else if (score === "balanced") {
     parts.push(
@@ -88,7 +88,7 @@ function watchSentence(s: StrategyDef): string {
     );
   } else if (score === "retail_tier") {
     parts.push(
-      `It prefers mid-volume \u201ccapital tier\u201d wallets on the monthly board and watches about ${topN}`
+      `It prefers mid-volume “capital tier” wallets on the monthly board and watches about ${topN}`
     );
   } else {
     const window = p.window ? windowLabel(String(p.window)) : "leaderboard";
@@ -97,12 +97,12 @@ function watchSentence(s: StrategyDef): string {
   }
 
   if (p.rankFrom != null && p.rankTo != null) {
-    parts.push(`limited to ranks ${p.rankFrom}\u2013${p.rankTo}`);
+    parts.push(`limited to ranks ${p.rankFrom}–${p.rankTo}`);
   }
-  if (p.minVol != null) parts.push(`with volume \u2265 ${money(Number(p.minVol))}`);
-  if (p.maxVol != null) parts.push(`with volume \u2264 ${money(Number(p.maxVol))}`);
-  if (p.minPnl != null) parts.push(`with PnL \u2265 ${money(Number(p.minPnl))}`);
-  if (p.maxPnl != null) parts.push(`with PnL \u2264 ${money(Number(p.maxPnl))}`);
+  if (p.minVol != null) parts.push(`with volume ≥ ${money(Number(p.minVol))}`);
+  if (p.maxVol != null) parts.push(`with volume ≤ ${money(Number(p.maxVol))}`);
+  if (p.minPnl != null) parts.push(`with PnL ≥ ${money(Number(p.minPnl))}`);
+  if (p.maxPnl != null) parts.push(`with PnL ≤ ${money(Number(p.maxPnl))}`);
   if (p.categoryHint) {
     parts.push(`and only copies ${p.categoryHint}-like market titles`);
   }
@@ -135,7 +135,7 @@ function walletTradeSentence(s: StrategyDef): string {
     case "fresh_only":
       return "It prefers the freshest leader prints and ignores staler tape when choosing what to copy.";
     default:
-      return "It mirrors those wallets\u2019 recent BUY/SELL prints on the live tape (paper fills, with lab size and risk caps).";
+      return "It mirrors those wallets’ recent BUY/SELL prints on the live tape (paper fills, with lab size and risk caps).";
   }
 }
 
@@ -148,21 +148,21 @@ function propTradeSentence(s: StrategyDef): string {
     case "buy_favorite":
       return `It buys when the tape price is at or above ${p.favorite ?? 0.75}, leaning into favorites.`;
     case "fade_longshot_flip":
-      return `On longshot-priced prints (\u2264 ${p.longshot ?? 0.12}), it flips the printed side instead of following.`;
+      return `On longshot-priced prints (≤ ${p.longshot ?? 0.12}), it flips the printed side instead of following.`;
     case "mid_band":
-      return `It only trades when price sits between ${p.lo ?? "\u2014"} and ${p.hi ?? "\u2014"}, ignoring extremes.`;
+      return `It only trades when price sits between ${p.lo ?? "—"} and ${p.hi ?? "—"}, ignoring extremes.`;
     case "micro_band":
-      return `It micro-scalps a tight band between ${p.lo ?? "\u2014"} and ${p.hi ?? "\u2014"}.`;
+      return `It micro-scalps a tight band between ${p.lo ?? "—"} and ${p.hi ?? "—"}.`;
     case "skip_extreme":
-      return `It skips near-certain or near-zero prices and only trades between ${p.lo ?? "\u2014"} and ${p.hi ?? "\u2014"}.`;
+      return `It skips near-certain or near-zero prices and only trades between ${p.lo ?? "—"} and ${p.hi ?? "—"}.`;
     case "tape_momentum":
       return "It follows buy-side tape momentum and ignores sells for entries.";
     case "tape_fade":
-      return "It fades tape bursts\u2014buying when the tape sells and selling when the tape buys.";
+      return "It fades tape bursts—buying when the tape sells and selling when the tape buys.";
     case "size_spike":
       return `It follows prints at least ${money(Number(p.minSize ?? 500))} in size, treating them as informed flow.`;
     case "size_spike_fade":
-      return `It fades large prints (\u2265 ${money(Number(p.minSize ?? 500))}), taking the opposite side.`;
+      return `It fades large prints (≥ ${money(Number(p.minSize ?? 500))}), taking the opposite side.`;
     case "crypto_updown_fade":
       return "On short-horizon crypto up/down markets, it fades the printed side.";
     case "crypto_updown_follow":
@@ -178,23 +178,23 @@ function propTradeSentence(s: StrategyDef): string {
     case "break_50":
       return "It follows flow when price is fighting around 0.50.";
     case "mean_revert":
-      return `It fades abrupt ~${Math.round(Number(p.jump ?? 0.1) * 100)}\u00a2 jumps, expecting mean reversion.`;
+      return `It fades abrupt ~${Math.round(Number(p.jump ?? 0.1) * 100)}¢ jumps, expecting mean reversion.`;
     case "momentum_jump":
-      return `It follows abrupt ~${Math.round(Number(p.jump ?? 0.1) * 100)}\u00a2 jumps as momentum.`;
+      return `It follows abrupt ~${Math.round(Number(p.jump ?? 0.1) * 100)}¢ jumps as momentum.`;
     case "min_size":
-      return `It ignores tiny noise and only trades size \u2265 ${money(Number(p.minSize ?? 50))}.`;
+      return `It ignores tiny noise and only trades size ≥ ${money(Number(p.minSize ?? 50))}.`;
     case "min_size_follow":
-      return `It mirrors whale-sized prints (\u2265 ${money(Number(p.minSize ?? 2000))}).`;
+      return `It mirrors whale-sized prints (≥ ${money(Number(p.minSize ?? 2000))}).`;
     case "max_size":
-      return `It only trades tiny retail-sized prints (\u2264 ${money(Number(p.maxSize ?? 25))}).`;
+      return `It only trades tiny retail-sized prints (≤ ${money(Number(p.maxSize ?? 25))}).`;
     case "endgame_favorite":
-      return `Late in the book it buys strong favorites priced \u2265 ${p.favorite ?? 0.85}.`;
+      return `Late in the book it buys strong favorites priced ≥ ${p.favorite ?? 0.85}.`;
     case "endgame_fade":
-      return "Late in the book it fades very rich 0.90\u20130.97 prices on tiny size, treating them as overpay.";
+      return "Late in the book it fades very rich 0.90–0.97 prices on tiny size, treating them as overpay.";
     case "sell_strength":
       return `When buys print above ~${p.thr ?? 0.7}, it sells into that strength.`;
     case "buy_weakness":
-      return `It buys weakness when price is \u2264 ${p.thr ?? 0.3}.`;
+      return `It buys weakness when price is ≤ ${p.thr ?? 0.3}.`;
     case "inventory_balance":
       return "It trades to flatten inventory skew rather than chase a directional view.";
     case "single_focus":
@@ -216,7 +216,7 @@ function propTradeSentence(s: StrategyDef): string {
     case "take_profit":
       return `It trims winners once mark is roughly +${Math.round(Number(p.tp ?? 0.2) * 100)}% from entry.`;
     case "stop_loss":
-      return `It cuts losers once mark is roughly \u2212${Math.round(Number(p.sl ?? 0.2) * 100)}% from entry.`;
+      return `It cuts losers once mark is roughly −${Math.round(Number(p.sl ?? 0.2) * 100)}% from entry.`;
     case "hold_winners":
       return "It prefers to add to winners and avoids selling them early.";
     case "first_print_follow":
@@ -240,13 +240,13 @@ function propTradeSentence(s: StrategyDef): string {
   }
 }
 
-/** 2\u20133 sentence writeup for bot detail pages. */
+/** 2–3 sentence writeup for bot detail pages. */
 export function explainStrategy(s: StrategyDef): string {
   if (s.family === "wallet_discovery") {
     return [watchSentence(s), walletTradeSentence(s), EXIT_SHARED].join(" ");
   }
   return [
-    "This is a proprietary tape strategy\u2014it reacts to market prints rather than copying a fixed wallet list.",
+    "This is a proprietary tape strategy—it reacts to market prints rather than copying a fixed wallet list.",
     propTradeSentence(s),
     EXIT_SHARED,
   ].join(" ");
