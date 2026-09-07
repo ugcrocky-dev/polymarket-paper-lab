@@ -172,6 +172,25 @@ export async function writeStateAsync(state: LabState) {
   await writeBlob(state);
 }
 
+/** Wipe bankrolls/positions/fills and optionally start every strategy fresh. */
+export async function resetLab(opts?: {
+  startAll?: boolean;
+}): Promise<LabState> {
+  const prev = await readStateAsync();
+  const state = defaultState();
+  state.rules = { ...prev.rules };
+  const now = new Date().toISOString();
+  if (opts?.startAll !== false) {
+    for (const bot of state.bots) {
+      bot.status = "running";
+      bot.runningSince = now;
+      bot.stoppedAt = null;
+    }
+  }
+  await writeStateAsync(state);
+  return state;
+}
+
 export function patchRules(partial: Partial<RiskRules>) {
   const state = readState();
   state.rules = { ...state.rules, ...partial };

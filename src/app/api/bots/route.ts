@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { readStateAsync } from "@/lib/store";
+import { readStateAsync, resetLab } from "@/lib/store";
+import { rotateTradeJournal } from "@/lib/store/journal";
 import { getStrategy } from "@/lib/strategies/catalog";
 import { setBotStatus, startMany, stopAllBots } from "@/lib/bots/runner";
 
@@ -43,6 +44,18 @@ export async function POST(req: Request) {
   if (body.action === "stop_all") {
     await stopAllBots();
     return NextResponse.json({ ok: true });
+  }
+  if (body.action === "reset_lab") {
+    const archived = rotateTradeJournal();
+    const state = await resetLab({ startAll: body.startAll !== false });
+    return NextResponse.json({
+      ok: true,
+      bots: state.bots.length,
+      running: state.bots.filter((b) => b.status === "running").length,
+      equity: state.bots.reduce((s, b) => s + b.equity, 0),
+      archivedJournal: archived,
+      updatedAt: state.updatedAt,
+    });
   }
   if (body.action === "start" || body.action === "stop") {
     const bot = await setBotStatus(

@@ -34,3 +34,19 @@ export function readTradeJournal(opts?: {
   }
   return out;
 }
+
+/** Archive the append-only journal and start a fresh file. */
+export function rotateTradeJournal(suffix?: string) {
+  try {
+    if (!fs.existsSync(JOURNAL)) return null;
+    const stamp =
+      suffix || new Date().toISOString().replace(/[:.]/g, "-");
+    const archived = path.join(DATA_DIR, `trade-journal.${stamp}.jsonl`);
+    fs.renameSync(JOURNAL, archived);
+    fs.writeFileSync(JOURNAL, "");
+    return archived;
+  } catch (err) {
+    console.error("trade journal rotate failed", err);
+    return null;
+  }
+}
