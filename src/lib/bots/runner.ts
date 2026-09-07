@@ -1,5 +1,11 @@
 import { fetchBoards, fetchTrades, fetchWatchedWalletTrades, LeaderRow, TradeRow } from "../polymarket/client";
-import { executeIntent, Intent, revalue } from "../paper/broker";
+import {
+  executeIntent,
+  certaintyRecycle,
+  capitalRecycle,
+  Intent,
+  revalue,
+} from "../paper/broker";
 import { readStateAsync, writeStateAsync } from "../store";
 import { BotState, RiskRules, StrategyDef } from "../types";
 import { getStrategy } from "../strategies/catalog";
@@ -426,6 +432,16 @@ export async function tickRunningBots() {
         }))
       );
 
+      // Free cash stuck in near-certain / dying marks, then unstick
+      // cash-starved losers so they can keep racing.
+      fills += certaintyRecycle(bot, state.rules).length;
+      const cashBefore = bot.cash;
+      const capitalFills = capitalRecycle(bot, state.rules);
+      fills += capitalFills.length;
+      // After a distress flatten, skip new buys this tick so cash
+      // is not immediately re-locked into fresh books.
+      const recovering = capitalFills.length > 0 && cashBefore < 25;
+
       let made = 0;
       if (strategy.family === "wallet_discovery") {
         const watched = new Set(
@@ -468,7 +484,9 @@ export async function tickRunningBots() {
             const k = `${t.slug}|${t.side}|${t.outcome}`;
             if ((counts.get(k) || 0) < 2) continue;
             const intent = walletIntent(strategy, t, watched);
-            if (intent && executeIntent(bot, state.rules, intent)) {
+            if (!intent) continue;
+            if (recovering && intent.side === "BUY") continue;
+            if (executeIntent(bot, state.rules, intent)) {
               fills += 1;
               made += 1;
             }
@@ -477,7 +495,9 @@ export async function tickRunningBots() {
           for (const t of candidates) {
             if (made >= 3) break;
             const intent = walletIntent(strategy, t, watched);
-            if (intent && executeIntent(bot, state.rules, intent)) {
+            if (!intent) continue;
+            if (recovering && intent.side === "BUY") continue;
+            if (executeIntent(bot, state.rules, intent)) {
               fills += 1;
               made += 1;
             }
@@ -488,7 +508,9 @@ export async function tickRunningBots() {
         for (const t of trades) {
           if (made >= 2) break;
           const intent = propIntent(strategy, t, bot, trades);
-          if (intent && executeIntent(bot, state.rules, intent)) {
+          if (!intent) continue;
+          if (recovering && intent.side === "BUY") continue;
+          if (executeIntent(bot, state.rules, intent)) {
             fills += 1;
             made += 1;
           }
