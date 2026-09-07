@@ -1,5 +1,5 @@
 import { fetchBoards, fetchTrades, fetchWatchedWalletTrades, LeaderRow, TradeRow } from "../polymarket/client";
-import { executeIntent, Intent, revalue } from "../paper/broker";
+import { executeIntent, certaintyRecycle, Intent, revalue } from "../paper/broker";
 import { readStateAsync, writeStateAsync } from "../store";
 import { BotState, RiskRules, StrategyDef } from "../types";
 import { getStrategy } from "../strategies/catalog";
@@ -425,6 +425,9 @@ export async function tickRunningBots() {
           price: t.price,
         }))
       );
+
+      // Free cash stuck in near-certain marks before new entries.
+      fills += certaintyRecycle(bot, state.rules).length;
 
       let made = 0;
       if (strategy.family === "wallet_discovery") {
