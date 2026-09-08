@@ -28,6 +28,7 @@ function emptyBot(strategyId: string): BotState {
     maxDrawdown: 0,
     tradeCount: 0,
     winCount: 0,
+    lossCount: 0,
     runningSince: null,
     stoppedAt: null,
     lastTickAt: null,
@@ -56,9 +57,15 @@ function normalize(parsed: LabState): LabState {
     if (typeof b.realizedPnl !== "number") b.realizedPnl = 0;
     if (typeof b.unrealizedPnl !== "number") b.unrealizedPnl = 0;
     if (typeof b.copyCursorMs !== "number") b.copyCursorMs = 0;
+    if (typeof b.winCount !== "number") b.winCount = 0;
     for (const f of b.fills || []) {
       if (typeof f.feeUsd !== "number") f.feeUsd = 0;
       if (typeof f.realizedPnl !== "number") f.realizedPnl = 0;
+    }
+    // Backfill lossCount from kept fills once; then broker keeps it current.
+    if (typeof b.lossCount !== "number") {
+      b.lossCount = (b.fills || []).filter((f) => (f.realizedPnl || 0) < 0)
+        .length;
     }
     return b;
   });
@@ -170,6 +177,25 @@ export async function writeStateAsync(state: LabState) {
   state.updatedAt = new Date().toISOString();
   writeFs(state);
   await writeBlob(state);
+}
+
+/** Wipe bankrolls/positions/fills and optionally start every strategy fresh. */
+export async function resetLab(opts?: {
+  startAll?: boolean;
+}): Promise<LabState> {
+  const prev = await readStateAsync();
+  const state = defaultState();
+  state.rules = { ...prev.rules };
+  const now = new Date().toISOString();
+  if (opts?.startAll !== false) {
+    for (const bot of state.bots) {
+      bot.status = "running";
+      bot.runningSince = now;
+      bot.stoppedAt = null;
+    }
+  }
+  await writeStateAsync(state);
+  return state;
 }
 
 export function patchRules(partial: Partial<RiskRules>) {
