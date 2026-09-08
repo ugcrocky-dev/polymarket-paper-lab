@@ -49,6 +49,8 @@ export type BotState = {
   maxDrawdown: number;
   tradeCount: number;
   winCount: number;
+  /** Closed sells with realizedPnl < 0 (lifetime; pairs with winCount). */
+  lossCount: number;
   runningSince: string | null;
   stoppedAt: string | null;
   lastTickAt: string | null;

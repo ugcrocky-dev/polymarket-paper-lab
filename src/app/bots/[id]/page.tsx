@@ -47,12 +47,16 @@ type BotDetail = {
   netPnl: number;
   tradeCount: number;
   winCount: number;
+  lossCount: number;
+  positiveTrades: number;
+  negativeTrades: number;
+  profitPct: number;
   maxDrawdown: number;
   lastTickAt: string | null;
   runningSince: string | null;
   positions: Position[];
   fills: Fill[];
-  strategy?: { name: string; family: string; description: string };
+  strategy?: { name: string; family: string; description: string; writeup?: string };
 };
 
 type FillRow = Fill & {
@@ -171,8 +175,8 @@ export default function BotDetailPage({
             <h2 className="mt-1 text-2xl font-semibold">
               {bot.strategy?.name || bot.id}
             </h2>
-            <p className="max-w-2xl text-sm text-[var(--muted)]">
-              {bot.strategy?.description}
+            <p className="mt-2 max-w-3xl text-sm leading-relaxed text-[var(--text)]">
+              {bot.strategy?.writeup || bot.strategy?.description}
             </p>
             <p className="mt-1 font-mono text-[11px] text-[var(--muted)]">
               {bot.id} · {bot.strategy?.family} · {bot.status}
@@ -195,7 +199,7 @@ export default function BotDetailPage({
           </div>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8">
           {[
             ["Equity", money(bot.equity), null as number | null],
             ["Cash", money(bot.cash), null],
@@ -204,6 +208,11 @@ export default function BotDetailPage({
             ["Unrealized", money(bot.unrealizedPnl), bot.unrealizedPnl],
             ["Fees", money(bot.feesPaid), null],
             ["Trades", String(bot.tradeCount), null],
+            [
+              "Profit %",
+              `${((bot.profitPct || 0) * 100).toFixed(0)}% (+${bot.positiveTrades || 0}/−${bot.negativeTrades || 0})`,
+              null,
+            ],
           ].map(([label, value, colorN]) => (
             <div key={String(label)} className="border border-[var(--line)] p-3">
               <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--muted)]">
@@ -275,7 +284,7 @@ export default function BotDetailPage({
         <div className="flex flex-col gap-1 border-b border-[var(--line)] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h3 className="font-mono text-xs uppercase tracking-[0.16em]">
-              Trade log ({bot.fills.length} kept ° {bot.tradeCount} lifetime)
+              Trade log ({bot.fills.length} kept · {bot.tradeCount} lifetime)
             </h3>
             <p className="mt-1 font-mono text-[11px] text-[var(--muted)]">
               Trade PnL: open buys use current mark − entry; sells use locked
