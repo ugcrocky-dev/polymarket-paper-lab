@@ -50,6 +50,8 @@ export type Intent = {
   price: number;
   reason: string;
   sourceWallet?: string;
+  /** When true, sell the entire position (certainty recycle). Ignores size caps. */
+  flatten?: boolean;
 };
 
 export function executeIntent(
@@ -57,23 +59,29 @@ export function executeIntent(
   rules: RiskRules,
   intent: Intent
 ): PaperFill | null {
-  if (intent.price > rules.skipPriceAbove || intent.price < rules.skipPriceBelow)
+  // Extreme price bands are entry filters only — never block exits.
+  if (
+    intent.side === "BUY" &&
+    (intent.price > rules.skipPriceAbove || intent.price < rules.skipPriceBelow)
+  ) {
     return null;
+  }
 
   const slip = (rules.slippageBps / 10000) * (intent.side === "BUY" ? 1 : -1);
   const px = Math.min(0.99, Math.max(0.01, intent.price + slip));
-  const budget = Math.min(
-    rules.maxUsdPerTrade,
-    (bot.startingBankroll * rules.maxPctBankroll) / 100,
-    Math.max(0, bot.cash * 0.95)
-  );
-  if (budget < 1) return null;
 
   const feeRate = rules.chargeTakerFees
     ? feeRateForTitle(intent.title, rules.defaultTakerFeeRate)
     : 0;
 
   if (intent.side === "BUY") {
+    const budget = Math.min(
+      rules.maxUsdPerTrade,
+      (bot.startingBankroll * rules.maxPctBankroll) / 100,
+      Math.max(0, bot.cash * 0.95)
+    );
+    if (budget < 1) return null;
+
     // Reserve room for fee so we don't overdraw cash.
     const estShares = budget / px;
     const estFee = calcTakerFee(estShares, px, feeRate);
@@ -116,7 +124,7 @@ export function executeIntent(
       price: px,
       sizeUsd: spend,
       shares,
-      feeUsd,
+      feeUsd: feeUsd,
       realizedPnl: 0,
       reason: intent.reason,
       sourceWallet: intent.sourceWallet,
@@ -129,9 +137,18 @@ export function executeIntent(
   const pos = bot.positions.find(
     (p) => p.marketSlug === intent.marketSlug && p.outcome === intent.outcome
   );
-  if (!pos) return null;
+  if (!pos || pos.shares <= 0) return null;
 
-  const shares = Math.min(pos.shares, budget / px);
+  // Sells size from inventory. Cash must not gate exits.
+  const sizeCapUsd = Math.min(
+    rules.maxUsdPerTrade,
+    (bot.startingBankroll * rules.maxPctBankroll) / 100
+  );
+  const shares = intent.flatten
+    ? pos.shares
+    : Math.min(pos.shares, sizeCapUsd / px);
+  if (shares <= 0) return null;
+
   const proceeds = shares * px;
   const feeUsd = calcTakerFee(shares, px, feeRate);
   const netProceeds = proceeds - feeUsd;
@@ -141,6 +158,7 @@ export function executeIntent(
   bot.feesPaid = (bot.feesPaid || 0) + feeUsd;
   bot.realizedPnl += pnl;
   if (pnl > 0) bot.winCount += 1;
+  else if (pnl < 0) bot.lossCount = (bot.lossCount || 0) + 1;
 
   pos.shares -= shares;
   if (pos.shares < 1e-8) bot.positions = bot.positions.filter((p) => p !== pos);
@@ -157,7 +175,7 @@ export function executeIntent(
     price: px,
     sizeUsd: proceeds,
     shares,
-    feeUsd,
+    feeUsd: feeUsd,
     realizedPnl: pnl,
     reason: intent.reason,
     sourceWallet: intent.sourceWallet,
@@ -172,6 +190,42 @@ function recordFill(bot: BotState, fill: PaperFill) {
   bot.fills = bot.fills.slice(0, FILL_HISTORY_LIMIT);
   bot.tradeCount += 1;
   appendTradeJournal(fill);
+}
+
+
+function flattenPosition(
+  bot: BotState,
+  rules: RiskRules,
+  pos: BotState["positions"][number],
+  reason: string
+): PaperFill | null {
+  return executeIntent(bot, rules, {
+    marketSlug: pos.marketSlug,
+    title: pos.title,
+    outcome: pos.outcome,
+    side: "SELL",
+    price: pos.markPrice,
+    reason,
+    flatten: true,
+  });
+}
+
+/** Flatten positions whose marks are outside the entry price band to free cash. */
+export function certaintyRecycle(
+  bot: BotState,
+  rules: RiskRules
+): PaperFill[] {
+  const fills: PaperFill[] = [];
+  for (const pos of [...bot.positions]) {
+    if (pos.shares <= 0) continue;
+    const extreme =
+      pos.markPrice >= rules.skipPriceAbove ||
+      pos.markPrice <= rules.skipPriceBelow;
+    if (!extreme) continue;
+    const fill = flattenPosition(bot, rules, pos, "certainty recycle");
+    if (fill) fills.push(fill);
+  }
+  return fills;
 }
 
 export function revalue(
