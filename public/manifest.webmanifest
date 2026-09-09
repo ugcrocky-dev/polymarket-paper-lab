@@ -1,0 +1,23 @@
+{
+  "name": "Whale Alert",
+  "short_name": "Whale Alert",
+  "description": "Polymarket whale trade alerts from Paper Lab",
+  "start_url": "/alerts",
+  "display": "standalone",
+  "background_color": "#070a0c",
+  "theme_color": "#070a0c",
+  "icons": [
+    {
+      "src": "/icons/alert-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/alert-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
