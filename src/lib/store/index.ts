@@ -14,10 +14,16 @@ const FILE = path.join(DATA_DIR, "lab-state.json");
 const BLOB_PATHNAME = "lab-state.json";
 
 function emptyBot(strategyId: string): BotState {
+  const strategy = ALL_STRATEGIES.find((s) => s.id === strategyId);
+  const fixed = strategy?.params?.fixedWallet
+    ? String(strategy.params.fixedWallet).toLowerCase()
+    : null;
+  const now = new Date().toISOString();
   return {
     id: `bot_${strategyId}`,
     strategyId,
-    status: "stopped",
+    // Fixed-wallet (CopyGrade) bots start running so they copy on the next tick.
+    status: fixed ? "running" : "stopped",
     cash: STARTING_BANKROLL,
     equity: STARTING_BANKROLL,
     startingBankroll: STARTING_BANKROLL,
@@ -28,13 +34,13 @@ function emptyBot(strategyId: string): BotState {
     maxDrawdown: 0,
     tradeCount: 0,
     winCount: 0,
-    runningSince: null,
+    runningSince: fixed ? now : null,
     stoppedAt: null,
     lastTickAt: null,
     lastError: null,
     positions: [],
     fills: [],
-    watchedWallets: [],
+    watchedWallets: fixed ? [fixed] : [],
     copyCursorMs: 0,
   };
 }
