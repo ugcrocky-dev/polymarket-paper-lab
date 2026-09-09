@@ -15,7 +15,7 @@ const mono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   title: "Polymarket Paper Lab",
-  description: "100 paper strategies. $1000 each. Promote after 7 days.",
+  description: "105 paper strategies. $1000 each. Promote after 7 days.",
 };
 
 const nav = [

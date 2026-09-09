@@ -1,6 +1,6 @@
 # Polymarket Paper Lab
 
-Paper-trading lab racing 100 bots ($1,000 each) across wallet-discovery and proprietary strategies.
+Paper-trading lab racing 105 bots ($1,000 each) across wallet-discovery, CopyGrade fixed-wallet copies, and proprietary strategies.
 
 ## Permanent URL
 
