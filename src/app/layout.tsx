@@ -16,6 +16,12 @@ const mono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "Polymarket Paper Lab",
   description: "100 paper strategies. $1000 each. Promote after 7 days.",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "Whale Alert",
+    statusBarStyle: "black-translucent",
+  },
 };
 
 const nav = [
@@ -24,6 +30,7 @@ const nav = [
   { href: "/trades", label: "Trades" },
   { href: "/wallets", label: "Wallets" },
   { href: "/lab", label: "Lab" },
+  { href: "/alerts", label: "Alerts" },
   { href: "/rules", label: "Rules" },
 ];
 
